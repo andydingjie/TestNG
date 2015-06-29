@@ -1,0 +1,133 @@
+
+http://qxf2.com/blog/get-started-with-testng/
+
+We wrote this post for testers who want to get started with TestNG. You will learn about some popular annotations used in TestNG. We also show you how to parameterize your automated checks.
+
+TestNG is a testing framework influenced from JUnit and NUnit but has some great features which makes it more powerful and easier to use. Some basic knowledge of automated checking using Java and Selenium is a pre-requisite to follow this post. You should have Java, Eclipse and Selenium installed. We estimate this post will take you about 60 minutes to read and try out on your own.
+
+Getting started with TestNG
+1. Install TestNG plug-in for Eclipse
+2. Some important TestNG annotations
+3. Select an application to test
+4. Writing test using TestNG framework
+5. Running the test
+
+STEP 1: Install TestNG plug-in for Eclipse
+If your Eclipse does not have an inbuilt TestNG plug-in you can install it from eclipse IDE. Select Help / Install New Software updates. Search for TestNg or directly enter the url mentioned below.
+For Eclipse 3.4 and above, enter http://beust.com/eclipse.
+For Eclipse 3.3 and below, enter http://beust.com/eclipse1.
+Eclipse will then guide you through the rest of the process.
+
+Note: If you are wondering about the URL beust, Cédric Beust is the creator of the TestNG framework.
+
+Install TestNG
+
+Once you have installed TestNg, add it to your Project by going to your project Properties/Add Library and select TestNG Library which you added earlier
+
+Add TestNG Library
+
+STEP 2: Some important TestNG Annotations
+There are many TestNG annotations. Below are a list of annotations which we will be using in our test
+
+@BeforeTest: The annotated method will be run before any test method belonging to the classes inside the tag is run.
+@AfterTest: The annotated method will be run after all the test methods belonging to the classes inside the tag have run.
+@BeforeMethod: The annotated method will be run before each test method.
+@AfterMethod: The annotated method will be run after each test method.
+@DataProvider: Marks a method as supplying data for a test method. The annotated method must return an Object[][] where each Object[] can be assigned the parameter list of the test method. The @Test method that wants to receive data from this DataProvider needs to use a dataProvider name equals to the name of this annotation.
+STEP 3: Select an application to test
+Since we love Chess here at Qxf2 Services, we will use http://www.chess.com/ to automate our test using TestNG framework. We will parameterize the login functionality and assert that the username is displayed properly once we Login.
+
+STEP 4: Writing test using TestNG framework
+We will write a Selenium test using TestNG framework to check the login functionality of chess.com using multiple id.
+
+/***
+Test case to Parameterize the Login functionality of chess.com using TestNG annotation "@DataProvider".
+Some other annotations like @BeforeTest to setup driver, @AfterTest to teardown the driver and @BeforeMethod to navigate to the test url are used.
+**/
+ 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.Assert;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+ 
+public class Chess {
+	public static WebDriver driver;
+ 
+	@Test(dataProvider="LoginData")
+ 
+	public static void Test_Login(String Username, String Password) throws InterruptedException{
+ 
+		driver.findElement(By.xpath("//input[@id='loginusername']")).sendKeys(Username);
+		driver.findElement(By.xpath("//input[@id='loginpassword']")).sendKeys(Password);
+		driver.findElement(By.xpath("//button[@id='c2']")).click();
+		Thread.sleep(5000);
+		String userId= driver.findElement(By.xpath("//div[@class='user-nick']/h2")).getText();
+		Assert.assertEquals(userId, Username);
+		driver.findElement(By.xpath("//li[@class='logout']/a")).click();
+ 
+	}
+ 
+	@DataProvider //Supplies data for the test method
+	public Object[][] LoginData() throws IOException{
+		Object[][] data = new Object[3][2];
+ 
+		//First row data
+		data[0][0]="TestUser10";
+		data[0][1]="chess.com";
+ 
+		//Second row data
+		data[1][0]="TestUser12";
+		data[1][1]="chess.com";
+ 
+		//Third row data
+		data[2][0]="TestUser14";
+		data[2][1]="chess.com";
+ 
+        return data;
+ 
+	}
+ 
+	@BeforeMethod //Method will run before executing every test
+	  public void launchChess() {
+		// Launch the chess.com url
+		driver.get("http://www.chess.com/");
+ 
+	}
+ 
+	 @BeforeTest //Method will run before any test method belonging to the class
+	  public void setUp() {
+		  //Initialize driver
+		 driver= new FirefoxDriver();
+		 //Implicit wait for 10 sec for element to load
+		 driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS); 
+ 
+	  }
+ 
+	  @AfterTest //Method will run after executing all test method belonging to the class
+	  public void tearDown() {
+		  //Close all the driver Instance
+		  driver.quit();
+ 
+	  }
+ 
+}
+STEP 5: Running the test
+You can run the TestNG test by clicking RunAs and selecting TestNG Test. Once the Tests runs you can view the result as shown below
+Run Test
+In case you have multiple tests to be run, you can use testng.xml to run the Test. Below is a sample testng.xml which has one test name. You can create multiple tests and add it to testng.xml to run it. The “class name” in the testng.xml should be your “PackageName.ClassName”.
+
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="My Sample Suite">
+<test name="ChessTest">	
+ <classes>
+ <class name="Test.Chess" ></class>
+ </classes>
+</test>
+</suite>
